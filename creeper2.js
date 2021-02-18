@@ -30,7 +30,6 @@ function createCSV(url) {
   reduceURL = urlString.replace(/.*:\/*/g, '')
   fileName = reduceURL.replace(/\//g, '-').trim()
 
-
   file = `${fileName}.csv`
 
   fs.writeFile(file, `'${urlString}'`, { flag: 'w' }, function (err) {

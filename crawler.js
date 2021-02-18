@@ -2,7 +2,8 @@ const creeper = require('./creeper2')
 
 //add function to open and read links from .csv file
 
-async function crawlLinks(baseUrl, linksArray) {
+async function crawlLinks(baseUrl) {
+  const linksArray = await creeper.getLinks(baseUrl)
   for (i = 0; i < linksArray.length; i++) {
     if (linksArray[i] !== '' || linksArray[i] !== '/') {
       if (linksArray[i].startsWith('/')) {
