@@ -2,6 +2,7 @@ const axios = require('axios')
 const gethref = require('get-hrefs')
 const fs = require('fs')
 
+let messageArray = []
 
 async function fetchHtml(url) {
   let statusCode
@@ -9,12 +10,15 @@ async function fetchHtml(url) {
     let response = await axios.get(url)
     let html = response.data
     statusCode = response.status
-    console.log(`${url}: status code: ${statusCode}`)
+    let successMessage = `${url}: status code: ${statusCode}`
+    console.log(successMessage)
+    messageArray.push(successMessage)
 
     return html
   } catch (err) {
-    // Handle Error Here
-    console.error(`${url}: status code: ${statusCode}` + '\n' + "Error: " + err)
+    let errorMessage = `${url}: status code: ${statusCode}` + '\n' + "Error: " + err
+    console.log(errorMessage)
+    messageArray.push(errorMessage)
   }
 }
 
@@ -25,6 +29,10 @@ function fetchLinks(html) {
   } else {
     return []
   }
+}
+
+function returnMessageArray() {
+  return messageArray
 }
 
 function createJsonObject(obj, baseUrl) {
@@ -77,5 +85,6 @@ module.exports = {
   fetchLinks,
   writeCsv,
   getLinks,
-  createJsonObject
+  createJsonObject,
+  returnMessageArray
 }

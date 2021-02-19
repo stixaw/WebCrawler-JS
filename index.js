@@ -7,6 +7,8 @@ async function run() {
   const crawlResults = {}
   crawlResults[baseUrl] = await crawler.crawlWebPage(baseUrl, 0)
   await creeper.createJsonObject(crawlResults, baseUrl)
+  let messages = creeper.returnMessageArray()
+  console.log(messages)
 }
 
 run()
