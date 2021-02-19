@@ -1,26 +1,39 @@
-const creeper = require('./creeper2')
+const creeper = require('./creeper')
 
-//add function to open and read links from .csv file
+const beenThere = []
+const baseUrl = 'https://chghealthcare.com'
 
-async function crawlLinks(baseUrl) {
+async function crawlLinks(url, layer) {
+  let currentLayer = layer
+  const crawlResults = {}
   const linksArray = await creeper.getLinks(baseUrl)
+  if (beenThere.includes(url) || url.includes('blog') || currentLayer > 2) {
+    return {}
+  }
+
+  beenThere.push(baseUrl)
+  console.log("Been There Array: ", beenThere)
+
   for (i = 0; i < linksArray.length; i++) {
+    let newUrl = ''
     if (linksArray[i] !== '' || linksArray[i] !== '/') {
       if (linksArray[i].startsWith('/')) {
-        url = baseUrl + linksArray[i]
-        creeper.getLinks(url)
+        newUrl = baseUrl + linksArray[i]
+      } else {
+        newUrl = linksArray[i]
       }
-      if (linksArray[i].startsWith('http')) {
-        url = linksArray[i]
-        if (!url.includes('linkedin') && !url.includes('twitter')
-          && !url.includes('glassdoor') && !url.includes('facebook')
-          && !url.includes('instagram')) {
-          creeper.getLinks(url)
-        }
+      if (newUrl.includes('chghealthcare.com')) {
+        console.log("Going to This URL: ", newUrl)
+        crawlResults[`${newUrl}`] = await creeper.getLinks(`${newUrl}`)
+        beenThere.push(newUrl)
+        currentLayer += 1
       }
     }
   }
+  console.log("RESULTS", crawlResults)
+  return crawlResults
 }
+
 
 module.exports = {
   crawlLinks

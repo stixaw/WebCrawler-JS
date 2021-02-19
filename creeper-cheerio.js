@@ -1,35 +1,44 @@
 const axios = require('axios')
-const gethref = require('get-hrefs')
+const cheerio = require('cheerio')
 const fs = require('fs')
 
 let response, html, file
+let linksArray = []
 
 async function fetchHtml(url) {
   try {
     response = await axios.get(url)
     html = response.data
-    statusCode = response.status
-    console.log(`${url}: status code: ${statusCode}`)
+    // console.log("HTML", html)
   } catch (err) {
     // Handle Error Here
-    console.error(`${url}: status code: ${statusCode}` + '\n' + "Error: " + err)
+    console.error(err)
   }
 
   return html
 }
 
 function fetchLinks(html) {
-  links = gethref(html)
+  //possible separate function
+  const $ = cheerio.load(html)
+  const linkObjects = $('a')
+
+  linkObjects.each((index, element) => {
+    if ($(element).attr('href') !== undefined && $(element).attr('href') !== "javascript:;"
+      && $(element).attr('href') !== "tel:866.608.4020" && $(element).attr('href') !== "javascript:void(0);")
+      linksArray.push(
+        $(element).attr('href')
+      )
+  })
+  links = Array.from(new Set(linksArray))
   return links
 }
 
 function createCSV(url) {
   const urlString = `${url}`
-  let reduceURL, fileName
-
-  reduceURL = urlString.replace(/.*:\/*/g, '')
-  fileName = reduceURL.replace(/\//g, '-').trim()
-
+  const regex = /https:\/*/
+  const reduceURL = urlString.replace(regex, '')
+  const fileName = reduceURL.replace('/', '-').trim()
   file = `${fileName}.csv`
 
   fs.writeFile(file, `'${urlString}'`, { flag: 'w' }, function (err) {

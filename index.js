@@ -1,10 +1,12 @@
-const creeper = require('./creeper2')
+const creeper = require('./creeper')
 const crawler = require('./crawler')
 
 const baseUrl = 'https://chghealthcare.com'
 
 async function run() {
-  crawler.crawlLinks(baseUrl)
+  const crawlResults = {}
+  crawlResults[baseUrl] = await crawler.crawlLinks(baseUrl, 0)
+  await creeper.createJsonObject(crawlResults, baseUrl)
 }
 
 run()

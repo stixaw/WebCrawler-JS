@@ -1,54 +1,56 @@
 const axios = require('axios')
-const cheerio = require('cheerio')
+const gethref = require('get-hrefs')
 const fs = require('fs')
 
-let response, html, file
-let linksArray = []
 
 async function fetchHtml(url) {
+  let statusCode
   try {
-    response = await axios.get(url)
-    html = response.data
-    // console.log("HTML", html)
+    let response = await axios.get(url)
+    let html = response.data
+    statusCode = response.status
+    console.log(`${url}: status code: ${statusCode}`)
+    return html
   } catch (err) {
     // Handle Error Here
-    console.error(err)
+    console.error(`${url}: status code: ${statusCode}` + '\n' + "Error: " + err)
   }
-
-  return html
 }
 
 function fetchLinks(html) {
-  //possible separate function
-  const $ = cheerio.load(html)
-  const linkObjects = $('a')
-
-  linkObjects.each((index, element) => {
-    if ($(element).attr('href') !== undefined && $(element).attr('href') !== "javascript:;"
-      && $(element).attr('href') !== "tel:866.608.4020" && $(element).attr('href') !== "javascript:void(0);")
-      linksArray.push(
-        $(element).attr('href')
-      )
-  })
-  links = Array.from(new Set(linksArray))
-  return links
+  if (html) {
+    let links = gethref(html)
+    return links
+  } else {
+    return []
+  }
 }
 
-function createCSV(url) {
-  const urlString = `${url}`
-  const regex = /https:\/*/
-  const reduceURL = urlString.replace(regex, '')
-  const fileName = reduceURL.replace('/', '-').trim()
-  file = `${fileName}.csv`
+function createJsonObject(obj, baseUrl) {
+  let fileName = createFileName(baseUrl)
+  fs.writeFileSync(`${fileName}.json`, JSON.stringify(obj))
+}
 
-  fs.writeFile(file, `'${urlString}'`, { flag: 'w' }, function (err) {
+function createFileName(url) {
+  const urlString = `${url}`
+  const reduceURL = urlString.replace(/.*:\/*/g, '')
+  const name = reduceURL.replace(/\//g, '-').trim()
+  return name
+}
+
+function createCSVFile(url) {
+  let fileName = createFileName(url)
+  let file = `${fileName}.csv`
+
+  fs.writeFile(file, `'${fileName}'`, { flag: 'w' }, function (err) {
     if (err)
       return console.error(err)
   })
+  return file
 }
 
-async function makeCSV(links, url) {
-  await createCSV(url)
+async function writeCsv(links, url) {
+  let file = await createCSVFile(url)
   let stream = fs.createWriteStream(file)
   for (let i = 0; i < links.length; i++) {
     stream.write(links[i] + '\n')
@@ -57,16 +59,16 @@ async function makeCSV(links, url) {
 }
 
 async function getLinks(url) {
-  html = await fetchHtml(url)
-  links = fetchLinks(html)
-  console.log(links)
-  makeCSV(links, url)
+  let html = await fetchHtml(url)
+  let links = fetchLinks(html)
+  writeCsv(links, url)
   return links
 }
 
 module.exports = {
   fetchHtml,
   fetchLinks,
-  makeCSV,
-  getLinks
+  writeCsv,
+  getLinks,
+  createJsonObject
 }
