@@ -10,6 +10,7 @@ async function fetchHtml(url) {
     let html = response.data
     statusCode = response.status
     console.log(`${url}: status code: ${statusCode}`)
+
     return html
   } catch (err) {
     // Handle Error Here
