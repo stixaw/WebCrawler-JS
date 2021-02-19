@@ -62,8 +62,14 @@ async function writeCsv(links, url) {
 async function getLinks(url) {
   let html = await fetchHtml(url)
   let links = fetchLinks(html)
-  writeCsv(links, url)
-  return links
+  let newLinks = []
+  links.forEach(element => {
+    if (element !== '' && element !== '/') {
+      newLinks.push(element)
+    }
+  });
+  writeCsv(newLinks, url)
+  return newLinks
 }
 
 module.exports = {
