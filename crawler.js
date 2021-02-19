@@ -2,7 +2,6 @@ const creeper = require('./creeper')
 
 const beenThere = []
 const whiteList = ['https://chghealthcare.com']
-const maxLayer = 8
 
 async function getLinksArrayFromUrl(url) {
   let newLinksArray = []
@@ -35,7 +34,7 @@ function isInWhiteList(url) {
   return isInWhiteList
 }
 
-async function crawlWebPage(url, layer) {
+async function crawlWebPage(url, layer, maxLayer) {
   let currentLayer = layer + 1
   let crawlResults = {}
   let links = []
