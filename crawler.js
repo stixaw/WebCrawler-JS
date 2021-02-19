@@ -1,46 +1,61 @@
 const creeper = require('./creeper')
 
 const beenThere = []
-const baseUrl = 'https://chghealthcare.com'
-const excludeList = ['pdf', 'respond']
+const whiteList = ['https://chghealthcare.com']
+const maxLayer = 3
 
-async function crawlLinksArray(links) {
-  const crawlResults = {}
-  const newLinksArray = []
-  for (i = 0; i < links.length; i++) {
-    let newUrl = ''
-    if (links[i] !== '' || links[i] !== '/') {
-      if (links[i].startsWith('/')) {
-        newUrl = baseUrl + links[i]
-      } else {
-        newUrl = links[i]
-      }
-      if (newUrl.includes('chghealthcare.com') && !beenThere.includes(newUrl)) {
-        crawlResults[`${newUrl}`] = await creeper.getLinks(`${newUrl}`) //can this return the new links array to continue the crawling?
-        beenThere.push(newUrl)
-      }
+async function getLinksArrayFromUrl(url) {
+  let newLinksArray = []
+
+  //get base domain from URL:
+  let split = url.split('/')
+  let baseUrl = split.splice(0, 3).join('/')
+  console.log("Split", split)
+  console.log("Base URL", baseUrl)
+
+  newLinksArray = await creeper.getLinks(url)
+  beenThere.push(url)
+
+  for (i = 0; i < newLinksArray.length; i++) {
+    if (newLinksArray[i].startsWith('/')) {
+      newLinksArray[i] = baseUrl + newLinksArray[i]
     }
   }
   console.log("Been There Array: ", beenThere)
-  return crawlResults
+  return newLinksArray
+}
+
+function isInWhiteList(url) {
+  let isInWhiteList = false
+  whiteList.forEach(element => {
+    if (url.startsWith(element)) {
+      isInWhiteList = true
+    }
+  })
+  return isInWhiteList
 }
 
 async function crawlWebPage(url, layer) {
-  let currentLayer = layer
+  let currentLayer = layer + 1
+  let crawlResults = {}
+  let links = []
 
-  const linksArray = await creeper.getLinks(baseUrl)
-  beenThere.push(baseUrl)
-
-  if (url.includes('.pdf' || 'respond') || currentLayer > 2) {
+  if (url.includes('.pdf' || 'respond') || currentLayer > maxLayer) {
     return {}
   }
-  let crawlResults = crawlLinksArray(linksArray) //get both newlinks array and crawlResults?
-  //call crawlWebPage with newLinks array???
+  links = await getLinksArrayFromUrl(url)
+  for (const link of links) {
+    if (!beenThere.includes(link) && isInWhiteList(link)) {
+      crawlResults[link] = await crawlWebPage(link, currentLayer)
+    } else {
+      crawlResults[link] = {}
+    }
+  }
   return crawlResults
 }
 
 
 module.exports = {
   crawlWebPage,
-  crawlLinksArray
+  getLinksArrayFromUrl
 }
