@@ -22,7 +22,7 @@ async function crawlLinks(url, layer) {
       } else {
         newUrl = linksArray[i]
       }
-      if (newUrl.includes('chghealthcare.com')) {
+      if (newUrl.includes('chghealthcare.com') && !beenThere.includes(newUrl)) {
         console.log("Going to This URL: ", newUrl)
         crawlResults[`${newUrl}`] = await creeper.getLinks(`${newUrl}`)
         beenThere.push(newUrl)
